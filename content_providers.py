@@ -8,6 +8,8 @@ from typing import Dict, List
 class InternetContent:
     id: str
     timestamp: datetime
+    title: str
+    url: str
     content: Dict[str, object]
 
 
@@ -68,17 +70,16 @@ class IndieHackerContentProvider(InternetContentProvider):
         comment_span = x.find("span", class_="reply-count__full-count")
 
         content = {
-            "title": title_link.get_text().strip(),
-            "full_link": self.getBaseWebsite() + title_link.get('href'),
-            "upvotes": int(upvote_span.get_text()),
-
             # Expected innerHtml ~= "18 comments"
-            "comments": int(comment_span.get_text().split(" ")[0])
+            "comments": int(comment_span.get_text().split(" ")[0]),
+            "upvotes": int(upvote_span.get_text())
         }
 
         return InternetContent(
             str(hash(content["full_link"])),
             self.getTimestamp(x),
+            title_link.get_text().strip(),
+            self.getBaseWebsite() + title_link.get('href'),
             content
         )
 
@@ -118,8 +119,6 @@ class HackerNewsContentProvider(InternetContentProvider):
         title_link = main_line.find("a", class_="titlelink")
 
         content = {
-            "title": title_link.get_text().strip(),
-            "full_link": title_link.get('href'),
             "upvotes": self.getUpvotes(score_metadata),
             "comments": self.getCommentCount(score_metadata),
         }
@@ -127,6 +126,8 @@ class HackerNewsContentProvider(InternetContentProvider):
         return InternetContent(
             str(hash(content["full_link"])),
             self.getTimestamp(score_metadata),
+            title_link.get_text().strip(),
+            title_link.get('href'),
             content
         )
 
