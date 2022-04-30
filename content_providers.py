@@ -1,7 +1,17 @@
 from dataclasses import dataclass
 from datetime import datetime
-import bs4
+from enum import Enum, auto
 from typing import Dict, List
+
+import bs4
+
+
+class ContentId(Enum):
+    IndieHacker_PopularPosts = auto()
+    HackerNews_News          = auto() 
+
+    def _generate_next_value_(name, start, count, last_values):
+        return name
 
 
 @dataclass
@@ -10,7 +20,7 @@ class InternetContent:
     timestamp: datetime
     title: str
     url: str
-    content_type: str
+    content_type: ContentId
     content: Dict[str, object]
 
 
@@ -43,8 +53,8 @@ class IndieHackerContentProvider(InternetContentProvider):
     def getBaseWebsite(self) -> str:
         return "https://www.indiehackers.com"
 
-    def getContentId(self) -> str:
-        return "IndieHacker-post-popular"
+    def getContentId(self) -> ContentId:
+        return ContentId.IndieHacker_PopularPosts
 
     def getContent(self, page: bs4.BeautifulSoup) -> List[InternetContent]:
         contentList = page.find(
@@ -94,7 +104,7 @@ class HackerNewsContentProvider(InternetContentProvider):
         return "https://news.ycombinator.com"
 
     def getContentId(self) -> str:
-        return "hackerNews-news"
+        return ContentId.HackerNews_News
 
     def getContent(self, page: bs4.BeautifulSoup) -> List[InternetContent]:
         contentList = page.find("table", class_="itemlist").find_all("tr")

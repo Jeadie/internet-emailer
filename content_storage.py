@@ -5,7 +5,7 @@ import json
 import sqlite3
 from peewee import AutoField, CharField, DateTimeField, ForeignKeyField, Model, SqliteDatabase, TextField
 
-from content_providers import InternetContent
+from content_providers import ContentId, InternetContent
 
 DB= SqliteDatabase("the-internet.db")
 class BaseModel(Model):
@@ -33,7 +33,7 @@ class ContentStorage(object):
         with DB:
             DB.create_tables([InternetContent, InternetLocation])
 
-    def _get_or_create_internet_locations(self, content: List[InternetContent]) -> Dict[str, InternetContent]:
+    def _get_or_create_internet_locations(self, content: List[InternetContent]) -> Dict[ContentId, InternetContent]:
         """ Maps the content types of InternetContentProvider to their InternetLocation. Does not
         recreate InternetLocation if they exist. 
         """
