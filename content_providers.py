@@ -10,6 +10,7 @@ class InternetContent:
     timestamp: datetime
     title: str
     url: str
+    content_type: str
     content: Dict[str, object]
 
 
@@ -82,6 +83,7 @@ class IndieHackerContentProvider(InternetContentProvider):
             self.getTimestamp(x),
             title_link.get_text().strip(),
             url,
+            self.getContentId(),
             content
         )
 
@@ -132,6 +134,7 @@ class HackerNewsContentProvider(InternetContentProvider):
             self.getTimestamp(score_metadata),
             title_link.get_text().strip(),
             url,
+            self.getContentId(),
             content
         )
 
