@@ -3,14 +3,14 @@ import requests
 
 import bs4
 
-from content_providers import HackerNewsContentProvider, IndieHackerContentProvider
+from content_providers import HackerNewsContentProvider, IndieHackerContentProvider, InternetContent
 
 class InvalidRequestException(Exception):
     pass
 
 
 content_providers = [HackerNewsContentProvider(), IndieHackerContentProvider()]
-internet: Dict[str, List[Dict[str, object]]] = {}
+internet: Dict[str, List[InternetContent]] = {}
 
 for c in content_providers:
     resp = requests.get(c.getBaseWebsite())

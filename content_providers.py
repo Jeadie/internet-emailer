@@ -1,6 +1,14 @@
-from doctest import UnexpectedException
+from dataclasses import dataclass
+from datetime import datetime
 import bs4
 from typing import Dict, List
+
+
+@dataclass
+class InternetContent:
+    id: str
+    timestamp: datetime
+    content: Dict[str, object]
 
 
 class InternetContentProvider(object):
@@ -16,10 +24,13 @@ class InternetContentProvider(object):
         """
         pass
 
-    def getContent(self, page: bs4.BeautifulSoup) -> List[Dict[str, object]]:
+    def getContent(self, page: bs4.BeautifulSoup) -> List[InternetContent]:
         """Parses the internet content from a website, as a BeautifulSoup object, and returns a list
         of individual content payloads. An individiual payload represents a single consumable piece
         of content. 
+
+        getContent is intended to isolate all the awkward, hard-coded random logic required in web 
+        scraping specific websites.
         """
         pass
 
@@ -32,7 +43,7 @@ class IndieHackerContentProvider(InternetContentProvider):
     def getContentId(self) -> str:
         return "IndieHacker-post-popular"
 
-    def getContent(self, page: bs4.BeautifulSoup) -> List[Dict[str, object]]:
+    def getContent(self, page: bs4.BeautifulSoup) -> List[InternetContent]:
         contentList = page.find(
             "div", class_="posts-section__posts"
             )
@@ -41,12 +52,22 @@ class IndieHackerContentProvider(InternetContentProvider):
             )
         return list(map(lambda x: self.convertItemPost(x), items))
 
+    def getTimestamp(self, x:bs4.Tag) -> datetime:
+        post_date = x.find("a", class_="feed-item__date")
+
+        if not post_date:
+            return datetime.now()
+
+        # April 29 at 5:18 PM
+        published = post_date.get("title")
+        return datetime.strptime(published, "%B %d at %I:%M %p")
+
     def convertItemPost(self, x: bs4.Tag) -> Dict[str, object]:
         title_link = x.find("a", class_="feed-item__title-link")
         upvote_span = x.find("span", class_="feed-item__likes-count")
         comment_span = x.find("span", class_="reply-count__full-count")
 
-        return {
+        content = {
             "title": title_link.get_text().strip(),
             "full_link": self.getBaseWebsite() + title_link.get('href'),
             "upvotes": int(upvote_span.get_text()),
@@ -54,6 +75,12 @@ class IndieHackerContentProvider(InternetContentProvider):
             # Expected innerHtml ~= "18 comments"
             "comments": int(comment_span.get_text().split(" ")[0])
         }
+
+        return InternetContent(
+            str(hash(content["full_link"])),
+            self.getTimestamp(x),
+            content
+        )
 
 
 class HackerNewsContentProvider(InternetContentProvider):
@@ -64,7 +91,7 @@ class HackerNewsContentProvider(InternetContentProvider):
     def getContentId(self) -> str:
         return "hackerNews-news"
 
-    def getContent(self, page: bs4.BeautifulSoup) -> List[Dict[str, object]]:
+    def getContent(self, page: bs4.BeautifulSoup) -> List[InternetContent]:
         contentList = page.find("table", class_="itemlist").find_all("tr")
         i = 0
         entries = []
@@ -90,16 +117,30 @@ class HackerNewsContentProvider(InternetContentProvider):
         """
         title_link = main_line.find("a", class_="titlelink")
 
-        return {
+        content = {
             "title": title_link.get_text().strip(),
             "full_link": title_link.get('href'),
             "upvotes": self.getUpvotes(score_metadata),
             "comments": self.getCommentCount(score_metadata),
-
-            # Expected key title="2022-04-27T09:28:57"
-            "published": score_metadata.find("span", class_="age").get("title")
         }
-    
+
+        return InternetContent(
+            str(hash(content["full_link"])),
+            self.getTimestamp(score_metadata),
+            content
+        )
+
+    def getTimestamp(self, score_metadata: bs4.Tag) -> datetime:
+        age_span = score_metadata.find("span", class_="age")
+
+        if not age_span:
+            return datetime.now()
+
+        time = age_span.get("title")
+
+        # Expected key title="2022-04-27T09:28:57"
+        return datetime.fromisoformat(time)
+
     def getUpvotes(self, score_metadata: bs4.Tag) -> int:
         upvote_span = score_metadata.find("span", class_="score")
         if upvote_span:
@@ -111,7 +152,11 @@ class HackerNewsContentProvider(InternetContentProvider):
     def getCommentCount(self, score_metadata: bs4.Tag) -> int:
         links = score_metadata.find_all("a")
         if len(links) == 4:        
+            comments = links[-1].get_text()
+            if "comments" not in comments:
+                return 0
+
             # Expected innerHtml ~= "289 comments"
-            return int(links[-1].get_text().split("\xa0")[0])
+            return int(comments.split("\xa0")[0])
         else:
             return 0
