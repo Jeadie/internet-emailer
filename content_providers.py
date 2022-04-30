@@ -75,11 +75,13 @@ class IndieHackerContentProvider(InternetContentProvider):
             "upvotes": int(upvote_span.get_text())
         }
 
+        url = self.getBaseWebsite() + title_link.get('href')
+
         return InternetContent(
-            str(hash(content["full_link"])),
+            str(hash(url)),
             self.getTimestamp(x),
             title_link.get_text().strip(),
-            self.getBaseWebsite() + title_link.get('href'),
+            url,
             content
         )
 
@@ -123,11 +125,13 @@ class HackerNewsContentProvider(InternetContentProvider):
             "comments": self.getCommentCount(score_metadata),
         }
 
+        url = title_link.get('href')
+
         return InternetContent(
-            str(hash(content["full_link"])),
+            str(hash(url)),
             self.getTimestamp(score_metadata),
             title_link.get_text().strip(),
-            title_link.get('href'),
+            url,
             content
         )
 
