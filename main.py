@@ -4,13 +4,14 @@ import requests
 import bs4
 
 from content_providers import HackerNewsContentProvider, IndieHackerContentProvider, InternetContent
+from content_storage import ContentStorage
 
 class InvalidRequestException(Exception):
     pass
 
 
 content_providers = [HackerNewsContentProvider(), IndieHackerContentProvider()]
-internet: Dict[str, List[InternetContent]] = {}
+storage = ContentStorage()
 
 for c in content_providers:
     resp = requests.get(c.getBaseWebsite())
@@ -18,6 +19,4 @@ for c in content_providers:
         raise InvalidRequestException("Invalid status code {} from website {}. {}".format(resp.url, c.getBaseWebsite, resp.reason))
 
     soup = bs4.BeautifulSoup(resp.content, "html.parser")
-    internet[c.getContentId()] = c.getContent(soup)
-
-print(internet)
+    storage.save(c.getContent(soup))
