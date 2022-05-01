@@ -76,7 +76,11 @@ class IndieHackerContentProvider(InternetContentProvider):
 
         # April 29 at 5:18 PM
         published = post_date.get("title")
-        return datetime.strptime(published, "%B %d at %I:%M %p")
+        timestamp = datetime.strptime(published, "%B %d at %I:%M %p")
+
+        # Indie hacker timestamp assumes it is current year
+        return timestamp.replace(year= timestamp.now().year)
+
 
     def convertItemPost(self, x: bs4.Tag) -> Dict[str, object]:
         title_link = x.find("a", class_="feed-item__title-link")
