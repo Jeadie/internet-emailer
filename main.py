@@ -4,7 +4,7 @@ import requests
 import bs4
 
 from content_providers import HackerNewsContentProvider, IndieHackerContentProvider, InternetContent
-from content_storage import ContentStorage
+from content_storage import ContentStorage, ContentId
 
 class InvalidRequestException(Exception):
     pass
@@ -20,3 +20,7 @@ for c in content_providers:
 
     soup = bs4.BeautifulSoup(resp.content, "html.parser")
     storage.save(c.getContent(soup))
+
+
+for c in storage.get(content_ids=[ContentId.HackerNews_News], last_n_days=7):
+    print(c)

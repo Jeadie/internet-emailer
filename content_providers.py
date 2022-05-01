@@ -13,6 +13,9 @@ class ContentId(Enum):
     def _generate_next_value_(name, start, count, last_values):
         return name
 
+    def all():
+        return [ContentId.IndieHacker_PopularPosts, ContentId.HackerNews_News]
+
 
 @dataclass
 class InternetContent:
