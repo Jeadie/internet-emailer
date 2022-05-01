@@ -76,9 +76,10 @@ class ContentStorage(object):
         locations = self.getLocations(content_ids)
         location_id_to_content_id = dict([(l, l.location_type) for l in locations])
 
+        since_timestamp = datetime.now() - timedelta(days=last_n_days)
         q = (Content.select().where(
-                (Content.location.in_(locations))  # & 
-                # (Content.timestamp.to_timestamp() > (datetime.now() - timedelta(days=last_n_days)))
+                (Content.location.in_(locations)) & 
+                (Content.timestamp > since_timestamp)
             )
         )
         return [self.toInternetContent(content, location_id_to_content_id) for content in q]
