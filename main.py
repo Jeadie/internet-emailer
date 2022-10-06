@@ -13,14 +13,14 @@ class InvalidRequestException(Exception):
 content_providers = [HackerNewsContentProvider(), IndieHackerContentProvider()]
 storage = ContentStorage()
 
-for c in content_providers:
-    resp = requests.get(c.getBaseWebsite())
-    if resp.status_code != 200:
-        raise InvalidRequestException("Invalid status code {} from website {}. {}".format(resp.url, c.getBaseWebsite, resp.reason))
+# for c in content_providers:
+#     resp = requests.get(c.getBaseWebsite())
+#     if resp.status_code != 200:
+#         raise InvalidRequestException("Invalid status code {} from website {}. {}".format(resp.url, c.getBaseWebsite, resp.reason))
 
-    soup = bs4.BeautifulSoup(resp.content, "html.parser")
-    storage.save(c.getContent(soup))
+#     soup = bs4.BeautifulSoup(resp.content, "html.parser")
+#     storage.save(c.getContent(soup))
 
 
-for c in storage.get(content_ids=[ContentId.HackerNews_News], last_n_days=7):
+for c in storage.get(content_ids=[ContentId.IndieHacker_PopularPosts], last_n_days=700):
     print(c)
